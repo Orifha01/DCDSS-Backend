@@ -1,0 +1,7 @@
+{
+  "task_id": "task-dcdss-backend",
+  "task_description": "Implement the complete DCDSS .NET 8 Web API backend from the approved revision-2 design. Covers all 8 entity/EF layers, 7 enum types, 8 Fluent API configurations, 16 repository interfaces + implementations, 17 service interfaces + implementations, 9 controllers, audit filter, global exception middleware, JWT auth, admin seeder, CDS engine with seed rules, reference-range parser, and full Program.cs DI wiring.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}
