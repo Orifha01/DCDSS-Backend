@@ -19,4 +19,19 @@ public class AppointmentRepository : Repository<Appointment>, IAppointmentReposi
             .ToListAsync()
             .ContinueWith(t => (IList<Appointment>)t.Result);
     }
+
+    public Task<bool> HasConflictAsync(int doctorId, int patientId, DateTime appointmentDate)
+    {
+        // Block if the same doctor already has a Scheduled appointment
+        // within a 30-minute window of the requested time
+        var windowStart = appointmentDate.AddMinutes(-30);
+        var windowEnd = appointmentDate.AddMinutes(30);
+
+        return Query()
+            .AnyAsync(a =>
+                a.Status == Entities.Enums.AppointmentStatus.Scheduled &&
+                a.AppointmentDate >= windowStart &&
+                a.AppointmentDate <= windowEnd &&
+                (a.DoctorId == doctorId || a.PatientId == patientId));
+    }
 }

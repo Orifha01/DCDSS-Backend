@@ -40,6 +40,11 @@ public class AppointmentService : IAppointmentService
         if (dto.AppointmentDate <= DateTime.UtcNow)
             throw new BusinessRuleException("Appointment date must be in the future.");
 
+        // Check for duplicate / conflicting appointments
+        var hasConflict = await _apptRepo.HasConflictAsync(dto.DoctorId, dto.PatientId, dto.AppointmentDate);
+        if (hasConflict)
+            throw new ConflictException("A scheduled appointment already exists for this doctor or patient within 30 minutes of the requested time.");
+
         var appointment = new Appointment
         {
             PatientId = dto.PatientId,
