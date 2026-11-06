@@ -36,11 +36,8 @@ public class MedicalRecordService : IMedicalRecordService
         var doctor = await _userRepo.GetByIdAsync(dto.DoctorId)
             ?? throw new NotFoundException($"User with ID {dto.DoctorId} not found.");
 
-        if (doctor.Role != UserRole.Doctor)
-            throw new BusinessRuleException("Selected user is not a Doctor.");
-
-        if (dto.VisitDate > DateTime.UtcNow)
-            throw new BusinessRuleException("Visit date cannot be in the future.");
+        if (doctor.Role != UserRole.Doctor && doctor.Role != UserRole.Nurse)
+            throw new BusinessRuleException("Selected user is not a Doctor or Nurse.");
 
         var record = new MedicalRecord
         {

@@ -7,8 +7,7 @@ public class CreateMedicalRecordDto
     [Required]
     public int PatientId { get; set; }
 
-    [Required]
-    public int DoctorId { get; set; }
+    public int DoctorId { get; set; }  // Set by controller from JWT token
 
     [Required]
     [MaxLength(500)]

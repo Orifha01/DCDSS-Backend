@@ -482,3 +482,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Local development config — contains secrets, never commit
+appsettings.Development.json
+*.user
+.admin-seed-password.txt

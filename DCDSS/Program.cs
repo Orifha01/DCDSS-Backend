@@ -24,6 +24,11 @@ builder.Services.AddScoped<AuditActionFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<AuditActionFilter>();
+})
+.AddJsonOptions(options =>
+{
+    // Accept and return enums as strings (e.g. "Doctor" instead of 0)
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 // ── Swagger ──────────────────────────────────────────────────────────────────────
@@ -80,6 +85,9 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSetting
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Disable the default claim type remapping so "role" stays as "role"
+        // and matches the RoleClaimType we set below
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -161,6 +169,14 @@ builder.Services.AddTransient<PasswordHasher<User>>();
 // ── Build ────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
+// ── Auto-create database & apply migrations ──────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DcdssContext>>();
+    await using var db = await dbContextFactory.CreateDbContextAsync();
+    await db.Database.MigrateAsync(); // creates the DB if it doesn't exist, then applies all pending migrations
+}
+
 // ── Seed admin ───────────────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
@@ -170,6 +186,13 @@ using (var scope = app.Services.CreateScope())
 // ── Pipeline ─────────────────────────────────────────────────────────────────────
 // GlobalExceptionMiddleware MUST be first in the pipeline
 app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Swagger must come before auth so it's accessible without a token
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -181,13 +204,7 @@ app.UseCors("Default");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.Run();
