@@ -191,12 +191,9 @@ using (var scope = app.Services.CreateScope())
 // GlobalExceptionMiddleware MUST be first in the pipeline
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// Swagger must come before auth so it's accessible without a token
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger — always enabled (needed for API testing and frontend development)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (!app.Environment.IsDevelopment())
 {
